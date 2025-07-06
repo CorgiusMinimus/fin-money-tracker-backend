@@ -1,13 +1,16 @@
+import { addDays } from "date-fns"
 import { Session } from "../types/auth.types"
 import { ServiceResult } from "../types/generics.types"
 import { prisma } from "../utils/prisma"
 
 export const insertSession = async (id: string, hash: string): Promise<ServiceResult<Session>> => {
     try {
+        const today = new Date()
         const result = await prisma.session.create({
             data: {
                 user_id: id,
-                session_hash: hash
+                session_hash: hash,
+                expires_at: addDays(today, 7)
             },
             include: {
                 user: true

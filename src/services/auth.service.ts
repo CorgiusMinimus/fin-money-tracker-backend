@@ -1,6 +1,6 @@
 import { deleteSession, findSession, insertSession } from "../repositories/auth.repository";
 import { findUserEmail } from "../repositories/users.repository";
-import { Session, SessionToken } from "../types/auth.types";
+import { Session, SessionToken, SessionUser } from "../types/auth.types";
 import { ServiceResult } from "../types/generics.types";
 import { User } from "../types/users.types";
 import { hashSecret } from "../utils/auth";
@@ -49,7 +49,7 @@ export const insertSessionService = async (user: string): Promise<ServiceResult<
     }
 }
 
-export const verifySessionService = async (token: string): Promise<ServiceResult<boolean>> => {
+export const verifySessionService = async (token: string): Promise<ServiceResult<SessionUser>> => {
     const sessionHash = hashSecret(token)
     const find = await findSession(sessionHash)
 
@@ -59,10 +59,31 @@ export const verifySessionService = async (token: string): Promise<ServiceResult
             data: null
         }
     }
+
+    if(find.data.expires_at < new Date()){
+        return {
+            success: false,
+            data: null,
+            error: {
+                message: "Session expired."
+            }
+        }
+    }
+
+    const obj: SessionUser = {
+        session: {
+            session_id: find.data.session_id,
+            created_at: find.data.created_at
+        },
+        user: {
+            user_id: find.data.user.user_id,
+            email: find.data.user.email
+        }
+    }
     
     return {
         success: true,
-        data: true
+        data: obj
     }
 }
 
