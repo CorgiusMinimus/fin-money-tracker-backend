@@ -1,6 +1,10 @@
 import { deleteSession, findSession, insertSession } from "../repositories/auth.repository";
+import { findUserEmail } from "../repositories/users.repository";
+import { Session, SessionToken } from "../types/auth.types";
 import { ServiceResult } from "../types/generics.types";
+import { User } from "../types/users.types";
 import { hashSecret } from "../utils/auth";
+import { comparePassword } from "../utils/scrypt";
 
 export const generateSecureString = () => {
     // Human readable alphabet (a-z, 0-9 without l, o, 0, 1 to avoid confusion)
@@ -19,7 +23,7 @@ export const generateSecureString = () => {
 	return id;
 }
 
-export const insertSessionService = async (user: string): Promise<ServiceResult<any>> => {
+export const insertSessionService = async (user: string): Promise<ServiceResult<SessionToken>> => {
     const now = new Date()
     const secret = generateSecureString()
     const hash = hashSecret(secret)
@@ -29,7 +33,7 @@ export const insertSessionService = async (user: string): Promise<ServiceResult<
     if(!result.success){
         return {
             success: false,
-            data: {},
+            data: null,
             error: {
                 message: result.error.message
             }
@@ -39,6 +43,7 @@ export const insertSessionService = async (user: string): Promise<ServiceResult<
     return {
         success: true,
         data: {
+            session: result.data,
             token: secret
         }
     }
@@ -75,5 +80,53 @@ export const deleteSessionService = async (token: string): Promise<ServiceResult
     return {
         success: true,
         data: null
+    }
+}
+
+export const loginService = async (email: string, password: string): Promise<ServiceResult<SessionToken>> => {
+    const user = await findUserEmail(email)
+
+    if(!user.success || !user) {
+        return {
+            success: false,
+            data: null,
+            error: {
+                code: 404,
+                message: "User not found."
+            }
+        }
+    }
+
+    const verifyPassword = await comparePassword(password, user.data.password)
+
+    if(!verifyPassword) {
+        return {
+            success: false,
+            data: null,
+            error: {
+                code: 401,
+                message: "Invalid credentials."
+            }
+        }
+    }
+
+    const session = await insertSessionService(user.data.user_id)
+
+    if(!session.success){
+        return {
+            success: false,
+            data: null,
+            error: {
+                message: session.error.message || "Unknown error."
+            }
+        }
+    }
+
+    return {
+        success: true,
+        data: {
+            session: session.data.session,
+            token: session.data.token
+        }
     }
 }

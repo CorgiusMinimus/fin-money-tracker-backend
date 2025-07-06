@@ -7,3 +7,8 @@ export interface Session {
     created_at: Date;
     user: User;
 }
+
+export interface SessionToken {
+    session: Session,
+    token: string
+}

@@ -2,27 +2,28 @@ import { Session } from "../types/auth.types"
 import { ServiceResult } from "../types/generics.types"
 import { prisma } from "../utils/prisma"
 
-export const insertSession = async (id: string, hash: string): Promise<ServiceResult<any>> => {
+export const insertSession = async (id: string, hash: string): Promise<ServiceResult<Session>> => {
     try {
         const result = await prisma.session.create({
             data: {
                 user_id: id,
                 session_hash: hash
+            },
+            include: {
+                user: true
             }
         })
 
         return {
             success: true,
-            data: {
-                token: hash
-            }
+            data: result
         }
     }
 
     catch(err: unknown) {
         return {
             success: false,
-            data: {},
+            data: null,
             error: {
                 message: (err as Error).message
             }
