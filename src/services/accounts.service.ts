@@ -1,4 +1,4 @@
-import { getAccounts } from "../repositories/accounts.repository";
+import { addAccount, getAccounts } from "../repositories/accounts.repository";
 import { Account } from "../types/accounts.types";
 import { ServiceResult } from "../types/generics.types";
 import { logError, logInfo } from "../utils/winston";
@@ -16,6 +16,35 @@ export const getAccountsService = async (user: string): Promise<ServiceResult<Ac
             data: null,
             error: {
                 message: result.error.message
+            }
+        }
+    }
+
+    return {
+        success: true,
+        data: result.data
+    }
+}
+
+export const addAccountService = async (
+    user: string, 
+    data: {
+        accountName: string,
+        accountType: number,
+        colorId: number,
+        balance?: number
+    }
+): Promise<ServiceResult<Account>> => {
+    logInfo(200, moduleName, 'Adding account...', { userId: user})
+
+    const result = await addAccount(user, data)
+
+    if(!result.success){
+        return {
+            success: false,
+            data: null,
+            error: {
+                message: result.error.message || "Unknown error."
             }
         }
     }
