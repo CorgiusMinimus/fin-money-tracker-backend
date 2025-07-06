@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { registerUserService } from "../services/users.service";
-import { loginService } from "../services/auth.service";
+import { deleteSessionService, loginService } from "../services/auth.service";
 
 export const registerUserController = async (req: Request, res: Response) => {
     const {
@@ -59,4 +59,29 @@ export const loginUserController = async (req: Request, res: Response) => {
         data: null,
         message: "Login successful."
     })
+}
+
+export const logoutSessionController = async (req: Request, res: Response) => {
+    const session = req.cookies.session
+
+    const result = await deleteSessionService(session)
+
+    if(!result.success){
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: "Logout failed."
+        })
+
+        return
+    }
+
+    res.clearCookie('session')
+
+    res.status(200).json({
+        success: true,
+        data: null,
+        message: "Logout successful."
+    })
+
 }
