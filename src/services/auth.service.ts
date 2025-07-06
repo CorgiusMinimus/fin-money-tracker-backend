@@ -108,6 +108,7 @@ export const loginService = async (email: string, password: string): Promise<Ser
     const user = await findUserEmail(email)
 
     if(!user.success || !user) {
+        console.log(user)
         return {
             success: false,
             data: null,
@@ -121,6 +122,7 @@ export const loginService = async (email: string, password: string): Promise<Ser
     const verifyPassword = await comparePassword(password, user.data.password)
 
     if(!verifyPassword) {
+        console.log(user)
         return {
             success: false,
             data: null,
@@ -134,6 +136,7 @@ export const loginService = async (email: string, password: string): Promise<Ser
     const session = await insertSessionService(user.data.user_id)
 
     if(!session.success){
+        console.log(user)
         return {
             success: false,
             data: null,
