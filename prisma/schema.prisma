@@ -107,6 +107,7 @@ model session {
     session_id             String          @id @db.Uuid @default(uuid())
     user_id                String          @db.Uuid
     session_hash           String
+    expires_at             DateTime
     created_at             DateTime        @default(now())
 
     user                   user            @relation(fields: [user_id], references: [user_id])
