@@ -43,13 +43,53 @@ export const addAccount = async (
                 account_type_id: data.accountType,
                 color_id: data.colorId,
                 user_id: user,
-                balance: data.balance || undefined
+                balance: data.balance || undefined,
             }
         })
 
         return {
             success: true,
             data: result
+        }
+    }
+
+    catch(err: unknown) {
+        return {
+            success: false,
+            data: null,
+            error: {
+                message: (err as Error).message
+            }
+        }
+    }
+}
+
+export const editAccount = async (
+    account_id: string,
+    data: {
+        accountName?: string,
+        accountType?: number,
+        colorId?: number,
+        balance?: number
+    }
+): Promise<ServiceResult<Account>> => {
+    try {
+        const result = await prisma.account.update({
+            where: {
+                account_id: account_id
+            },
+            data: {
+                account_name: data.accountName || undefined,
+                account_type_id: data.accountType || undefined,
+                color_id: data.colorId || undefined,
+                balance: data.balance || undefined,
+                updated_at: new Date()
+            }
+        })
+
+        return {
+            success: true,
+            data: result,            
         }
     }
 

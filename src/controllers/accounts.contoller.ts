@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addAccountService, getAccountsService } from "../services/accounts.service";
+import { addAccountService, editAccountService, getAccountsService } from "../services/accounts.service";
 
 export const getAccountsController = async (req: Request, res: Response) => {
     
@@ -50,5 +50,45 @@ export const addAccountController = async (req: Request, res: Response) => {
         success: true,
         data: result.data,
         message: "Account added."
+    })
+}
+
+export const editAccountController = async (req: Request, res: Response) => {
+     const {
+        accountName,
+        accountType,
+        colorId,
+        balance
+    } = req.body
+
+    const { accountId } = req.params
+
+    const userId = req.session.user.user_id
+
+    const result = await editAccountService(
+        accountId, 
+        userId,
+        {
+            accountName, 
+            accountType: Number(accountType),
+            colorId: Number(colorId),
+            balance: Number(balance)
+        }
+    )
+
+    if(!result.success){
+        res.status(result.error.code || 500).json({
+            success: false,
+            data: null,
+            message: result.error.message || "Unknown error."
+        })
+
+        return
+    }
+
+    res.status(200).json({
+        success: true,
+        data: result.data,
+        message: "Account edited."
     })
 }
